@@ -13,14 +13,12 @@
         .container {
             display: flex;
             justify-content: space-around;
-            flex-wrap: wrap;
             margin: 20px;
         }
         .column {
             width: 45%;
             padding: 10px;
             border: 1px solid #ccc;
-            margin-bottom: 20px;
         }
         .column h2 {
             text-align: center;
@@ -30,8 +28,8 @@
             margin-bottom: 20px;
         }
         .item img {
-            max-width: 100%;
-            height: auto;
+            width: 100%; /* Obrázky vyplní celou šířku sloupce */
+            height: auto; /* Výška se přizpůsobí poměru stran */
         }
     </style>
 </head>
