@@ -51,17 +51,28 @@
             font-size: 0.9em;
             color: gray;
         }
+        .timer-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .timer {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
     <div class="login-container">
         <h1>Vložte heslo</h1>
         <input type="password" id="password-input" placeholder="Heslo">
+        <div class="timer-container">
+            <div class="timer" id="lockscreen-timer">30:00</div>
+        </div>
     </div>
     <div class="container">
         <h1>Trackování Prášků</h1>
         <div id="date-container">
-            <h2><span id="current-day"></span> <span id="current-date"></span></h2>
+            <h2>Dnes je: <span id="current-date"></span> (<span id="current-day"></span>)</h2>
         </div>
         <div class="pill-container">
             <div class="pill-label">
@@ -121,6 +132,10 @@
                 <input type="checkbox" id="pill5"> večer <span class="timestamp" id="pill5-timestamp"></span>
             </div>
         </div>
+        <div class="timer-container">
+            <div class="timer" id="timer">30:00</div>
+            <button id="start-timer">Start 30min Timer</button>
+        </div>
     </div>
 
     <script>
@@ -132,6 +147,9 @@
             const passwordInput = document.getElementById('password-input');
             const container = document.querySelector('.container');
             const loginContainer = document.querySelector('.login-container');
+            const timerElement = document.getElementById('timer');
+            const lockscreenTimerElement = document.getElementById('lockscreen-timer');
+            const startTimerButton = document.getElementById('start-timer');
 
             // Funkce pro získání názvu dne v týdnu
             function getDayName(date, locale) {
@@ -198,11 +216,49 @@
                 });
             });
 
-            // Zobraz obsah stránky po zadání správného hesla
-            passwordInput.addEventListener('input', () => {
-                if (passwordInput.value === 'pokolo') {
-                    loginContainer.style.display = 'none';
-                    container.style.display = 'block';
+            // Funkce pro spuštění časovače
+            function startTimer(duration, display, lockscreenDisplay) {
+                const startTime = Date.now();
+                const endTime = startTime + duration * 1000;
+
+                function updateTimer() {
+                    const now = Date.now();
+                    const timeLeft = Math.max((endTime - now) / 1000, 0);
+                    const minutes = Math.floor(timeLeft / 60);
+                    const seconds = Math.floor(timeLeft % 60);
+                    display.textContent = formatTime(minutes, seconds);
+                    lockscreenDisplay.textContent = formatTime(minutes, seconds);
+
+                    if (timeLeft > 0) {
+                        requestAnimationFrame(updateTimer);
+                    }
+                }
+
+                updateTimer();
+            }
+
+            // Formátování času pro zobrazení
+            function formatTime(minutes, seconds) {
+                return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            }
+
+            // Spuštění časovače po kliknutí na tlačítko
+            startTimerButton.addEventListener('click', () => {
+                startTimer(30 * 60, timerElement, lockscreenTimerElement);
+            });
+
+            // Kontrola hesla a zobrazení obsahu stránky
+            const correctPassword = 'pokolo'; // Nahraďte skutečným heslem
+
+            passwordInput.addEventListener('keyup', (event) => {
+                if (event.key === 'Enter') {
+                    const enteredPassword = passwordInput.value;
+                    if (enteredPassword === correctPassword) {
+                        loginContainer.style.display = 'none';
+                        container.style.display = 'block';
+                    } else {
+                        alert('Nesprávné heslo!');
+                    }
                 }
             });
 
