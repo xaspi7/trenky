@@ -36,6 +36,9 @@
         .log-entry {
             margin-bottom: 10px;
         }
+        .hidden {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -86,6 +89,12 @@
                 <input type="checkbox" id="pill4"> ráno
             </label>
         </div>
+        <div class="pill-container">
+            <label>
+                <input type="text" id="pill5-name" value="Prášek 5"> 
+                <input type="checkbox" id="pill5"> večer
+            </label>
+        </div>
         <div class="log-container">
             <h2>Log:</h2>
             <div id="log"></div>
@@ -121,22 +130,49 @@
                 pills.forEach(pill => {
                     pill.checked = localStorage.getItem(pill.id) === 'true';
                 });
+                pillNames.forEach(pillName => {
+                    if (localStorage.getItem(pillName.id)) {
+                        pillName.value = localStorage.getItem(pillName.id);
+                    }
+                });
             }
 
-            // Zaznamenej kliknutí na checkboxy
+            // Ulož stav checkboxů do localStorage
             pills.forEach(pill => {
                 pill.addEventListener('change', () => {
-                    const pillId = pill.id;
-                    const pillNameId = pillId.split('-')[0] + '-name';
-                    const pillName = document.getElementById(pillNameId).value;
-                    const dose = pillId.split('-')[1];
-                    const logEntry = document.createElement('div');
-                    logEntry.className = 'log-entry';
-                    logEntry.textContent = `${currentDate} - ${pillName} - ${dose ? dose + '. dávka' : 'ráno'} - ${pill.checked ? 'Vzato' : 'Nevzato'}`;
-                    logContainer.appendChild(logEntry);
+                    const timestamp = new Date().toLocaleTimeString('cs-CZ');
                     localStorage.setItem(pill.id, pill.checked);
+                    localStorage.setItem(`${pill.id}-timestamp`, timestamp);
+                    updateLog();
                 });
             });
+
+            // Ulož názvy prášků do localStorage
+            pillNames.forEach(pillName => {
+                pillName.addEventListener('input', () => {
+                    localStorage.setItem(pillName.id, pillName.value);
+                });
+            });
+
+            // Funkce pro aktualizaci logu
+            function updateLog() {
+                logContainer.innerHTML = '';
+                pills.forEach(pill => {
+                    const timestamp = localStorage.getItem(`${pill.id}-timestamp`);
+                    if (pill.checked) {
+                        const pillId = pill.id;
+                        const pillNameId = pillId.split('-')[0] + '-name';
+                        const pillName = document.getElementById(pillNameId).value;
+                        const dose = pillId.split('-')[1];
+                        const logEntry = document.createElement('div');
+                        logEntry.className = 'log-entry';
+                        logEntry.textContent = `${currentDate} - ${pillName} - ${dose ? dose + '. dávka' : pillId.includes('5') ? 'večer' : 'ráno'} - Vzato v ${timestamp}`;
+                        logContainer.appendChild(logEntry);
+                    }
+                });
+            }
+
+            updateLog();
         });
     </script>
 </body>
