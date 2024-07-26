@@ -149,6 +149,7 @@
                     if (timestamp) {
                         document.getElementById(`${pill.id}-timestamp`).textContent = timestamp;
                     }
+                    toggleTimestamp(pill);
                 });
                 pillNames.forEach(pillName => {
                     if (localStorage.getItem(pillName.id)) {
@@ -157,13 +158,28 @@
                 });
             }
 
+            // Funkce pro skrytí/zobrazení časového razítka
+            function toggleTimestamp(pill) {
+                const timestampElement = document.getElementById(`${pill.id}-timestamp`);
+                if (pill.checked) {
+                    timestampElement.style.display = 'inline-block';
+                } else {
+                    timestampElement.style.display = 'none';
+                }
+            }
+
             // Ulož stav checkboxů do localStorage
             pills.forEach(pill => {
                 pill.addEventListener('change', () => {
                     const timestamp = new Date().toLocaleTimeString('cs-CZ');
                     localStorage.setItem(pill.id, pill.checked);
-                    localStorage.setItem(`${pill.id}-timestamp`, timestamp);
-                    document.getElementById(`${pill.id}-timestamp`).textContent = timestamp;
+                    if (pill.checked) {
+                        localStorage.setItem(`${pill.id}-timestamp`, timestamp);
+                        document.getElementById(`${pill.id}-timestamp`).textContent = timestamp;
+                    } else {
+                        localStorage.removeItem(`${pill.id}-timestamp`);
+                    }
+                    toggleTimestamp(pill);
                 });
             });
 
