@@ -30,8 +30,13 @@
         .pill-container {
             margin-bottom: 20px;
         }
-        .pill-container label {
+        .pill-container .pill-label {
             display: block;
+            margin-bottom: 10px;
+        }
+        .pill-container .checkbox-container {
+            display: flex;
+            align-items: center;
             margin-bottom: 10px;
         }
         .pill-container input[type="checkbox"] {
@@ -40,11 +45,8 @@
         .pill-container input[type="text"] {
             margin-left: 10px;
         }
-        .hidden {
-            display: none;
-        }
         .timestamp {
-            display: inline-block;
+            display: none;
             margin-left: 10px;
             font-size: 0.9em;
             color: gray;
@@ -62,56 +64,62 @@
             <h2>Dnes je: <span id="current-date"></span> (<span id="current-day"></span>)</h2>
         </div>
         <div class="pill-container">
-            <label>
+            <div class="pill-label">
                 <input type="text" id="pill1-name" value="Prášek 1"> 
-            </label>
-            <label>
+            </div>
+            <div class="checkbox-container">
                 <input type="checkbox" id="pill1-1"> 1. dávka <span class="timestamp" id="pill1-1-timestamp"></span>
-            </label>
-            <label>
+            </div>
+            <div class="checkbox-container">
                 <input type="checkbox" id="pill1-2"> 2. dávka <span class="timestamp" id="pill1-2-timestamp"></span>
-            </label>
-            <label>
+            </div>
+            <div class="checkbox-container">
                 <input type="checkbox" id="pill1-3"> 3. dávka <span class="timestamp" id="pill1-3-timestamp"></span>
-            </label>
-            <label>
+            </div>
+            <div class="checkbox-container">
                 <input type="checkbox" id="pill1-4"> 4. dávka <span class="timestamp" id="pill1-4-timestamp"></span>
-            </label>
+            </div>
         </div>
         <div class="pill-container">
-            <label>
+            <div class="pill-label">
                 <input type="text" id="pill2-name" value="Prášek 2"> 
-            </label>
-            <label>
+            </div>
+            <div class="checkbox-container">
                 <input type="checkbox" id="pill2-1"> 1. dávka <span class="timestamp" id="pill2-1-timestamp"></span>
-            </label>
-            <label>
+            </div>
+            <div class="checkbox-container">
                 <input type="checkbox" id="pill2-2"> 2. dávka <span class="timestamp" id="pill2-2-timestamp"></span>
-            </label>
-            <label>
+            </div>
+            <div class="checkbox-container">
                 <input type="checkbox" id="pill2-3"> 3. dávka <span class="timestamp" id="pill2-3-timestamp"></span>
-            </label>
-            <label>
+            </div>
+            <div class="checkbox-container">
                 <input type="checkbox" id="pill2-4"> 4. dávka <span class="timestamp" id="pill2-4-timestamp"></span>
-            </label>
+            </div>
         </div>
         <div class="pill-container">
-            <label>
+            <div class="pill-label">
                 <input type="text" id="pill3-name" value="Prášek 3"> 
+            </div>
+            <div class="checkbox-container">
                 <input type="checkbox" id="pill3"> ráno <span class="timestamp" id="pill3-timestamp"></span>
-            </label>
+            </div>
         </div>
         <div class="pill-container">
-            <label>
+            <div class="pill-label">
                 <input type="text" id="pill4-name" value="Prášek 4"> 
+            </div>
+            <div class="checkbox-container">
                 <input type="checkbox" id="pill4"> ráno <span class="timestamp" id="pill4-timestamp"></span>
-            </label>
+            </div>
         </div>
         <div class="pill-container">
-            <label>
+            <div class="pill-label">
                 <input type="text" id="pill5-name" value="Prášek 5"> 
+            </div>
+            <div class="checkbox-container">
                 <input type="checkbox" id="pill5"> večer <span class="timestamp" id="pill5-timestamp"></span>
-            </label>
+            </div>
         </div>
     </div>
 
