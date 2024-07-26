@@ -39,6 +39,12 @@
         .hidden {
             display: none;
         }
+        .timestamp {
+            display: inline-block;
+            margin-left: 10px;
+            font-size: 0.9em;
+            color: gray;
+        }
     </style>
 </head>
 <body>
@@ -50,64 +56,65 @@
         <div class="pill-container">
             <label>
                 <input type="text" id="pill1-name" value="Prášek 1"> 
-                <input type="checkbox" id="pill1-1"> 1. dávka
             </label>
             <label>
-                <input type="checkbox" id="pill1-2"> 2. dávka
+                <input type="checkbox" id="pill1-1"> 1. dávka <span class="timestamp" id="pill1-1-timestamp"></span>
             </label>
             <label>
-                <input type="checkbox" id="pill1-3"> 3. dávka
+                <input type="checkbox" id="pill1-2"> 2. dávka <span class="timestamp" id="pill1-2-timestamp"></span>
             </label>
             <label>
-                <input type="checkbox" id="pill1-4"> 4. dávka
+                <input type="checkbox" id="pill1-3"> 3. dávka <span class="timestamp" id="pill1-3-timestamp"></span>
+            </label>
+            <label>
+                <input type="checkbox" id="pill1-4"> 4. dávka <span class="timestamp" id="pill1-4-timestamp"></span>
             </label>
         </div>
         <div class="pill-container">
             <label>
                 <input type="text" id="pill2-name" value="Prášek 2"> 
-                <input type="checkbox" id="pill2-1"> 1. dávka
             </label>
             <label>
-                <input type="checkbox" id="pill2-2"> 2. dávka
+                <input type="checkbox" id="pill2-1"> 1. dávka <span class="timestamp" id="pill2-1-timestamp"></span>
             </label>
             <label>
-                <input type="checkbox" id="pill2-3"> 3. dávka
+                <input type="checkbox" id="pill2-2"> 2. dávka <span class="timestamp" id="pill2-2-timestamp"></span>
             </label>
             <label>
-                <input type="checkbox" id="pill2-4"> 4. dávka
+                <input type="checkbox" id="pill2-3"> 3. dávka <span class="timestamp" id="pill2-3-timestamp"></span>
+            </label>
+            <label>
+                <input type="checkbox" id="pill2-4"> 4. dávka <span class="timestamp" id="pill2-4-timestamp"></span>
             </label>
         </div>
         <div class="pill-container">
             <label>
                 <input type="text" id="pill3-name" value="Prášek 3"> 
-                <input type="checkbox" id="pill3"> ráno
+                <input type="checkbox" id="pill3"> ráno <span class="timestamp" id="pill3-timestamp"></span>
             </label>
         </div>
         <div class="pill-container">
             <label>
                 <input type="text" id="pill4-name" value="Prášek 4"> 
-                <input type="checkbox" id="pill4"> ráno
+                <input type="checkbox" id="pill4"> ráno <span class="timestamp" id="pill4-timestamp"></span>
             </label>
         </div>
         <div class="pill-container">
             <label>
                 <input type="text" id="pill5-name" value="Prášek 5"> 
-                <input type="checkbox" id="pill5"> večer
+                <input type="checkbox" id="pill5"> večer <span class="timestamp" id="pill5-timestamp"></span>
             </label>
         </div>
-        <div class="log-container">
-            <h2>Log:</h2>
-            <div id="log"></div>
-        </div>
+        <button id="show-log">Zobrazit log</button>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', (event) => {
             const dateContainer = document.getElementById('current-date');
             const dayContainer = document.getElementById('current-day');
-            const logContainer = document.getElementById('log');
             const pills = document.querySelectorAll('input[type="checkbox"]');
             const pillNames = document.querySelectorAll('input[type="text"]');
+            const showLogButton = document.getElementById('show-log');
 
             // Funkce pro získání názvu dne v týdnu
             function getDayName(date, locale) {
@@ -129,6 +136,10 @@
             } else {
                 pills.forEach(pill => {
                     pill.checked = localStorage.getItem(pill.id) === 'true';
+                    const timestamp = localStorage.getItem(`${pill.id}-timestamp`);
+                    if (timestamp) {
+                        document.getElementById(`${pill.id}-timestamp`).textContent = timestamp;
+                    }
                 });
                 pillNames.forEach(pillName => {
                     if (localStorage.getItem(pillName.id)) {
@@ -143,7 +154,7 @@
                     const timestamp = new Date().toLocaleTimeString('cs-CZ');
                     localStorage.setItem(pill.id, pill.checked);
                     localStorage.setItem(`${pill.id}-timestamp`, timestamp);
-                    updateLog();
+                    document.getElementById(`${pill.id}-timestamp`).textContent = timestamp;
                 });
             });
 
@@ -154,25 +165,15 @@
                 });
             });
 
-            // Funkce pro aktualizaci logu
-            function updateLog() {
-                logContainer.innerHTML = '';
+            // Zobrazit log po kliknutí na tlačítko
+            showLogButton.addEventListener('click', () => {
                 pills.forEach(pill => {
                     const timestamp = localStorage.getItem(`${pill.id}-timestamp`);
-                    if (pill.checked) {
-                        const pillId = pill.id;
-                        const pillNameId = pillId.split('-')[0] + '-name';
-                        const pillName = document.getElementById(pillNameId).value;
-                        const dose = pillId.split('-')[1];
-                        const logEntry = document.createElement('div');
-                        logEntry.className = 'log-entry';
-                        logEntry.textContent = `${currentDate} - ${pillName} - ${dose ? dose + '. dávka' : pillId.includes('5') ? 'večer' : 'ráno'} - Vzato v ${timestamp}`;
-                        logContainer.appendChild(logEntry);
+                    if (timestamp) {
+                        document.getElementById(`${pill.id}-timestamp`).textContent = timestamp;
                     }
                 });
-            }
-
-            updateLog();
+            });
         });
     </script>
 </body>
