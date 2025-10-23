@@ -8,7 +8,6 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>📝</text></svg>">
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    /* Tisk: každá karta na samostatné stránce pokud je delší */
     @media print { 
       .no-print { display: none !important; }
       .card { break-inside: avoid; }
@@ -18,12 +17,11 @@
   </style>
 </head>
 <body class="min-h-screen bg-slate-50 text-slate-900">
-  <header class="sticky top-0 z-40 bg-white/80 backdrop-blur border-b border-slate-200">
+  <header class="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-slate-200">
     <div class="mx-auto max-w-4xl px-4 py-3 flex items-center gap-3">
       <div class="text-2xl">📝</div>
       <div>
         <h1 class="text-xl font-semibold">„Seznam“ – otázky a poznámky ze schůzky</h1>
-        <p class="text-sm text-slate-600">Ukládá se automaticky do tohoto prohlížeče. Ideální pro GitHub Pages (statická webovka).</p>
       </div>
       <div class="ml-auto flex gap-2 no-print">
         <button id="btn-export-md" class="px-3 py-2 text-sm rounded-xl bg-slate-900 text-white hover:bg-slate-700">Export MD</button>
@@ -34,7 +32,7 @@
   </header>
 
   <main class="mx-auto max-w-4xl px-4 py-6">
-    <section class="mb-6 no-print">
+    <section class="mb-6 no-print sticky top-[72px] z-30">
       <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
         <div class="flex flex-wrap items-center gap-3">
           <div class="text-slate-700"><strong>Jméno respondenta:</strong></div>
@@ -46,7 +44,6 @@
           <button id="btn-reset-answers" class="px-3 py-2 text-sm rounded-xl border border-rose-300 text-rose-700 hover:bg-rose-50">🧹 Vyčistit odpovědi</button>
           <button id="btn-reset-all" class="px-3 py-2 text-sm rounded-xl border border-rose-400 text-rose-800 hover:bg-rose-50">♻️ Reset (vše)</button>
         </div>
-        <p class="mt-3 text-sm text-slate-600">Tip: klikni na název otázky pro úpravu. Otázky můžeš přesouvat šipkami nahoru/dolů.</p>
       </div>
     </section>
 
@@ -98,7 +95,6 @@
 
     function loadData(){
       let data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-      // Pokud prázdné, vlož defaulty
       if(!data.length){
         data = defaultQuestions.map(q => ({ id: uid(), q, a: '' }));
       }
@@ -174,7 +170,6 @@
 
     render();
 
-    // Ovládací prvky
     document.getElementById('btn-add').addEventListener('click', () => {
       const q = prompt('Zadej text nové otázky:');
       if(q && q.trim()){
@@ -203,7 +198,6 @@
 
     $respondent.addEventListener('input', () => scheduleSave(items));
 
-    // Export JSON
     function download(filename, text){
       const blob = new Blob([text], {type: 'text/plain;charset=utf-8'});
       const url = URL.createObjectURL(blob);
@@ -221,9 +215,7 @@
       download('seznam-notes.json', JSON.stringify(payload, null, 2));
     });
 
-    // Export Markdown
     document.getElementById('btn-export-md').addEventListener('click', () => {
-      const title = `Seznam – poznámky${$respondent.value?` (\nRespondent: ${$respondent.value})`:''}`;
       const lines = [
         `# Seznam – otázky a poznámky`,
         $respondent.value?`**Respondent:** ${$respondent.value}`:null,
@@ -234,8 +226,8 @@
       download('seznam-notes.md', lines.join('\n'));
     });
 
-    // Tisk / PDF
     document.getElementById('btn-print').addEventListener('click', () => window.print());
   </script>
 </body>
 </html>
+
