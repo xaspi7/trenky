@@ -1,270 +1,241 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="cs">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trackování Prášků</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            padding: 0;
-        }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            display: none; /* Skryjeme hlavní obsah stránky */
-        }
-        .login-container {
-            text-align: center;
-            margin-top: 100px;
-        }
-        .login-container input {
-            font-size: 20px;
-            padding: 10px;
-            margin-top: 20px;
-        }
-        h1, h2 {
-            text-align: center;
-        }
-        .pill-container {
-            margin-bottom: 20px;
-        }
-        .pill-container .pill-label {
-            display: block;
-            margin-bottom: 10px;
-        }
-        .pill-container .checkbox-container {
-            display: flex;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-        .pill-container input[type="checkbox"] {
-            margin-right: 10px;
-        }
-        .pill-container input[type="text"] {
-            margin-left: 10px;
-        }
-        .timestamp {
-            display: none;
-            margin-left: 10px;
-            font-size: 0.9em;
-            color: gray;
-        }
-        .timer-container {
-            text-align: center;
-            margin-top: 20px;
-        }
-        .timer {
-            font-size: 20px;
-            margin-bottom: 10px;
-        }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Seznam – meeting otázky a poznámky</title>
+  <meta name="description" content="Jednoduchá webová appka pro schůzkové otázky a poznámky. Ukládá se do prohlížeče (localStorage) a umí export do JSON/Markdown a tisk do PDF." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>📝</text></svg>">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Tisk: každá karta na samostatné stránce pokud je delší */
+    @media print { 
+      .no-print { display: none !important; }
+      .card { break-inside: avoid; }
+      body { background: white; }
+    }
+    textarea { resize: vertical; }
+  </style>
 </head>
-<body>
-    <div class="login-container">
-        <h1>Vložte heslo</h1>
-        <input type="password" id="password-input" placeholder="Heslo">
-        <div class="timer-container">
-            <div class="timer" id="lockscreen-timer">30:00</div>
-        </div>
+<body class="min-h-screen bg-slate-50 text-slate-900">
+  <header class="sticky top-0 z-40 bg-white/80 backdrop-blur border-b border-slate-200">
+    <div class="mx-auto max-w-4xl px-4 py-3 flex items-center gap-3">
+      <div class="text-2xl">📝</div>
+      <div>
+        <h1 class="text-xl font-semibold">„Seznam“ – otázky a poznámky ze schůzky</h1>
+        <p class="text-sm text-slate-600">Ukládá se automaticky do tohoto prohlížeče. Ideální pro GitHub Pages (statická webovka).</p>
+      </div>
+      <div class="ml-auto flex gap-2 no-print">
+        <button id="btn-export-md" class="px-3 py-2 text-sm rounded-xl bg-slate-900 text-white hover:bg-slate-700">Export MD</button>
+        <button id="btn-export-json" class="px-3 py-2 text-sm rounded-xl bg-slate-900 text-white hover:bg-slate-700">Export JSON</button>
+        <button id="btn-print" class="px-3 py-2 text-sm rounded-xl bg-slate-900 text-white hover:bg-slate-700">Tisk / PDF</button>
+      </div>
     </div>
-    <div class="container">
-        <h1>Trackování Prášků</h1>
-        <div id="date-container">
-            <h2><span id="current-day"></span> <span id="current-date"></span></h2>
+  </header>
+
+  <main class="mx-auto max-w-4xl px-4 py-6">
+    <section class="mb-6 no-print">
+      <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div class="flex flex-wrap items-center gap-3">
+          <div class="text-slate-700"><strong>Jméno respondenta:</strong></div>
+          <input id="respondent" type="text" placeholder="např. Filip Ježek" class="flex-1 px-3 py-2 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-400" />
+          <div class="ml-auto text-xs text-slate-500">Stav: <span id="save-state">uloženo</span></div>
         </div>
-        <div class="pill-container">
-            <div class="pill-label">
-                <input type="text" id="pill1-name" value="Prášek 1"> 
-            </div>
-            <div class="checkbox-container">
-                <input type="checkbox" id="pill1-1"> 1. dávka <span class="timestamp" id="pill1-1-timestamp"></span>
-            </div>
-            <div class="checkbox-container">
-                <input type="checkbox" id="pill1-2"> 2. dávka <span class="timestamp" id="pill1-2-timestamp"></span>
-            </div>
-            <div class="checkbox-container">
-                <input type="checkbox" id="pill1-3"> 3. dávka <span class="timestamp" id="pill1-3-timestamp"></span>
-            </div>
-            <div class="checkbox-container">
-                <input type="checkbox" id="pill1-4"> 4. dávka <span class="timestamp" id="pill1-4-timestamp"></span>
-            </div>
+        <div class="mt-3 flex flex-wrap gap-2">
+          <button id="btn-add" class="px-3 py-2 text-sm rounded-xl border border-slate-300 hover:bg-slate-50">➕ Přidat otázku</button>
+          <button id="btn-reset-answers" class="px-3 py-2 text-sm rounded-xl border border-rose-300 text-rose-700 hover:bg-rose-50">🧹 Vyčistit odpovědi</button>
+          <button id="btn-reset-all" class="px-3 py-2 text-sm rounded-xl border border-rose-400 text-rose-800 hover:bg-rose-50">♻️ Reset (vše)</button>
         </div>
-        <div class="pill-container">
-            <div class="pill-label">
-                <input type="text" id="pill2-name" value="Prášek 2"> 
-            </div>
-            <div class="checkbox-container">
-                <input type="checkbox" id="pill2-1"> 1. dávka <span class="timestamp" id="pill2-1-timestamp"></span>
-            </div>
-            <div class="checkbox-container">
-                <input type="checkbox" id="pill2-2"> 2. dávka <span class="timestamp" id="pill2-2-timestamp"></span>
-            </div>
-            <div class="checkbox-container">
-                <input type="checkbox" id="pill2-3"> 3. dávka <span class="timestamp" id="pill2-3-timestamp"></span>
-            </div>
-            <div class="checkbox-container">
-                <input type="checkbox" id="pill2-4"> 4. dávka <span class="timestamp" id="pill2-4-timestamp"></span>
-            </div>
+        <p class="mt-3 text-sm text-slate-600">Tip: klikni na název otázky pro úpravu. Otázky můžeš přesouvat šipkami nahoru/dolů.</p>
+      </div>
+    </section>
+
+    <section id="list" class="space-y-4"></section>
+  </main>
+
+  <template id="tpl-card">
+    <article class="card rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div class="flex items-start gap-3">
+        <button class="handle mt-1 no-print shrink-0 px-2 py-1 text-slate-500 hover:text-slate-900" title="Přesun nahoru">⬆️</button>
+        <button class="handle-down mt-1 no-print shrink-0 px-2 py-1 text-slate-500 hover:text-slate-900" title="Přesun dolů">⬇️</button>
+        <div class="flex-1">
+          <h2 contenteditable="true" class="q font-medium leading-6 focus:outline-none focus:ring-2 focus:ring-slate-300 rounded-md px-1">Otázka…</h2>
+          <textarea class="a mt-3 w-full min-h-[120px] px-3 py-2 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-400" placeholder="Poznámky / odpovědi…"></textarea>
+          <div class="mt-2 flex justify-between items-center text-xs text-slate-500">
+            <span class="chars">0 znaků</span>
+            <button class="btn-delete no-print px-2 py-1 rounded-lg border border-slate-300 hover:bg-slate-50">Smazat otázku</button>
+          </div>
         </div>
-        <div class="pill-container">
-            <div class="pill-label">
-                <input type="text" id="pill3-name" value="Prášek 3"> 
-            </div>
-            <div class="checkbox-container">
-                <input type="checkbox" id="pill3"> ráno <span class="timestamp" id="pill3-timestamp"></span>
-            </div>
-        </div>
-        <div class="pill-container">
-            <div class="pill-label">
-                <input type="text" id="pill4-name" value="Prášek 4"> 
-            </div>
-            <div class="checkbox-container">
-                <input type="checkbox" id="pill4"> ráno <span class="timestamp" id="pill4-timestamp"></span>
-            </div>
-        </div>
-        <div class="pill-container">
-            <div class="pill-label">
-                <input type="text" id="pill5-name" value="Prášek 5"> 
-            </div>
-            <div class="checkbox-container">
-                <input type="checkbox" id="pill5"> večer <span class="timestamp" id="pill5-timestamp"></span>
-            </div>
-        </div>
-        <div class="timer-container">
-            <div class="timer" id="timer">30:00</div>
-            <button id="start-timer">Start 30min Timer</button>
-        </div>
-    </div>
+      </div>
+    </article>
+  </template>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', (event) => {
-            const dateContainer = document.getElementById('current-date');
-            const dayContainer = document.getElementById('current-day');
-            const pills = document.querySelectorAll('input[type="checkbox"]');
-            const pillNames = document.querySelectorAll('input[type="text"]');
-            const passwordInput = document.getElementById('password-input');
-            const container = document.querySelector('.container');
-            const loginContainer = document.querySelector('.login-container');
-            const timerElement = document.getElementById('timer');
-            const lockscreenTimerElement = document.getElementById('lockscreen-timer');
-            const startTimerButton = document.getElementById('start-timer');
+  <script>
+    const STORAGE_KEY = 'seznam-questions-v1';
+    const STORAGE_META = 'seznam-meta-v1';
 
-            // Funkce pro získání názvu dne v týdnu
-            function getDayName(date, locale) {
-                return date.toLocaleDateString(locale, { weekday: 'long' });
-            }
+    const defaultQuestions = [
+      "Jestli si vybírá odvětví podle toho, co ho zajímá, nebo spíš podle příležitosti — tedy jestli rozhoduje to, jak se to vyplatí a jestli je to kvalitní a za dobrou cenu.",
+      "Co tě přimělo začít?",
+      "Jaké byly tvoje první chyby?",
+      "Organizuješ si nějak čas? Píšeš si to, máš remindery na den, co máš udělat, nebo prostě víš, co máš ten den zvládnout a plníš to, jak můžeš?",
+      "Co teď plánuješ dál — rozvíjet něco dalšího, nebo budeš rozvíjet to, co už máš?",
+      "Co za nástroje používáš, které ti pomáhají?",
+      "Byl jsi vždycky takový sympatický k lidem, nebo ses to musel naučit?",
+      "Kam ty teď vlastně míříš?"
+    ];
 
-            // Nastav aktuální datum a den v týdnu
-            const today = new Date();
-            const currentDate = today.toLocaleDateString('cs-CZ');
-            const currentDay = getDayName(today, 'cs-CZ');
-            dateContainer.textContent = currentDate;
-            dayContainer.textContent = currentDay;
+    const $list = document.getElementById('list');
+    const $tpl = document.getElementById('tpl-card');
+    const $respondent = document.getElementById('respondent');
+    const $saveState = document.getElementById('save-state');
 
-            // Zkontroluj a resetuj checkboxy pokud je nový den
-            const savedDate = localStorage.getItem('savedDate');
-            if (savedDate !== currentDate) {
-                localStorage.clear();
-                localStorage.setItem('savedDate', currentDate);
-            } else {
-                pills.forEach(pill => {
-                    pill.checked = localStorage.getItem(pill.id) === 'true';
-                    const timestamp = localStorage.getItem(`${pill.id}-timestamp`);
-                    if (timestamp) {
-                        document.getElementById(`${pill.id}-timestamp`).textContent = timestamp;
-                    }
-                    toggleTimestamp(pill);
-                });
-                pillNames.forEach(pillName => {
-                    if (localStorage.getItem(pillName.id)) {
-                        pillName.value = localStorage.getItem(pillName.id);
-                    }
-                });
-            }
+    const saveState = (text='uloženo') => { $saveState.textContent = text; };
+    let saveTimer;
 
-            // Funkce pro skrytí/zobrazení časového razítka
-            function toggleTimestamp(pill) {
-                const timestampElement = document.getElementById(`${pill.id}-timestamp`);
-                if (pill.checked) {
-                    timestampElement.style.display = 'inline-block';
-                } else {
-                    timestampElement.style.display = 'none';
-                }
-            }
+    function uid(){ return Math.random().toString(36).slice(2,9); }
+    function nowISO(){ return new Date().toISOString(); }
 
-            // Ulož stav checkboxů do localStorage
-            pills.forEach(pill => {
-                pill.addEventListener('change', () => {
-                    const timestamp = new Date().toLocaleTimeString('cs-CZ');
-                    localStorage.setItem(pill.id, pill.checked);
-                    if (pill.checked) {
-                        localStorage.setItem(`${pill.id}-timestamp`, timestamp);
-                        document.getElementById(`${pill.id}-timestamp`).textContent = timestamp;
-                    } else {
-                        localStorage.removeItem(`${pill.id}-timestamp`);
-                    }
-                    toggleTimestamp(pill);
-                });
-            });
+    function loadData(){
+      let data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      // Pokud prázdné, vlož defaulty
+      if(!data.length){
+        data = defaultQuestions.map(q => ({ id: uid(), q, a: '' }));
+      }
+      const meta = JSON.parse(localStorage.getItem(STORAGE_META) || '{}');
+      $respondent.value = meta.respondent || '';
+      return data;
+    }
 
-            // Ulož názvy prášků do localStorage
-            pillNames.forEach(pillName => {
-                pillName.addEventListener('input', () => {
-                    localStorage.setItem(pillName.id, pillName.value);
-                });
-            });
+    function saveData(data){
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      const meta = { respondent: $respondent.value, updatedAt: nowISO() };
+      localStorage.setItem(STORAGE_META, JSON.stringify(meta));
+      saveState('uloženo');
+    }
 
-            // Funkce pro spuštění časovače
-            function startTimer(duration, display, lockscreenDisplay) {
-                const startTime = Date.now();
-                const endTime = startTime + duration * 1000;
+    function scheduleSave(data){
+      saveState('ukládám…');
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(() => saveData(data), 400);
+    }
 
-                function updateTimer() {
-                    const now = Date.now();
-                    const timeLeft = Math.max((endTime - now) / 1000, 0);
-                    const minutes = Math.floor(timeLeft / 60);
-                    const seconds = Math.floor(timeLeft % 60);
-                    display.textContent = formatTime(minutes, seconds);
-                    lockscreenDisplay.textContent = formatTime(minutes, seconds);
+    let items = loadData();
 
-                    if (timeLeft > 0) {
-                        requestAnimationFrame(updateTimer);
-                    }
-                }
+    function render(){
+      $list.innerHTML = '';
+      items.forEach((item, index) => {
+        const node = $tpl.content.firstElementChild.cloneNode(true);
+        const qEl = node.querySelector('.q');
+        const aEl = node.querySelector('.a');
+        const charsEl = node.querySelector('.chars');
+        const delBtn = node.querySelector('.btn-delete');
+        const upBtn = node.querySelector('.handle');
+        const downBtn = node.querySelector('.handle-down');
 
-                updateTimer();
-            }
+        qEl.textContent = item.q;
+        aEl.value = item.a;
+        charsEl.textContent = `${(item.a||'').length} znaků`;
 
-            // Formátování času pro zobrazení
-            function formatTime(minutes, seconds) {
-                return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-            }
-
-            // Spuštění časovače po kliknutí na tlačítko
-            startTimerButton.addEventListener('click', () => {
-                startTimer(30 * 60, timerElement, lockscreenTimerElement);
-            });
-
-            // Kontrola hesla a zobrazení obsahu stránky
-            const correctPassword = 'pokolo'; // Nahraďte skutečným heslem
-
-            passwordInput.addEventListener('keyup', (event) => {
-                if (event.key === 'Enter') {
-                    const enteredPassword = passwordInput.value;
-                    if (enteredPassword === correctPassword) {
-                        loginContainer.style.display = 'none';
-                        container.style.display = 'block';
-                    } else {
-                        alert('Nesprávné heslo!');
-                    }
-                }
-            });
-
-            // Automaticky otevřít klávesnici pro zadání hesla
-            passwordInput.focus();
+        qEl.addEventListener('input', () => {
+          item.q = qEl.textContent.trim();
+          scheduleSave(items);
         });
-    </script>
+        aEl.addEventListener('input', () => {
+          item.a = aEl.value;
+          charsEl.textContent = `${item.a.length} znaků`;
+          scheduleSave(items);
+        });
+        delBtn.addEventListener('click', () => {
+          if(confirm('Smazat tuto otázku?')){
+            items.splice(index,1);
+            saveData(items);
+            render();
+          }
+        });
+        upBtn.addEventListener('click', () => {
+          if(index>0){
+            [items[index-1], items[index]] = [items[index], items[index-1]];
+            saveData(items);
+            render();
+          }
+        });
+        downBtn.addEventListener('click', () => {
+          if(index < items.length-1){
+            [items[index+1], items[index]] = [items[index], items[index+1]];
+            saveData(items);
+            render();
+          }
+        });
+
+        $list.appendChild(node);
+      });
+    }
+
+    render();
+
+    // Ovládací prvky
+    document.getElementById('btn-add').addEventListener('click', () => {
+      const q = prompt('Zadej text nové otázky:');
+      if(q && q.trim()){
+        items.push({ id: uid(), q: q.trim(), a: '' });
+        saveData(items);
+        render();
+      }
+    });
+
+    document.getElementById('btn-reset-answers').addEventListener('click', () => {
+      if(confirm('Vymazat všechny odpovědi? Otázky zůstanou.')){
+        items = items.map(it => ({...it, a: ''}));
+        saveData(items);
+        render();
+      }
+    });
+
+    document.getElementById('btn-reset-all').addEventListener('click', () => {
+      if(confirm('Resetovat vše na výchozí otázky a vymazat odpovědi?')){
+        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(STORAGE_META);
+        items = loadData();
+        render();
+      }
+    });
+
+    $respondent.addEventListener('input', () => scheduleSave(items));
+
+    // Export JSON
+    function download(filename, text){
+      const blob = new Blob([text], {type: 'text/plain;charset=utf-8'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = filename; a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    document.getElementById('btn-export-json').addEventListener('click', () => {
+      const payload = {
+        respondent: $respondent.value || null,
+        updatedAt: new Date().toISOString(),
+        items
+      };
+      download('seznam-notes.json', JSON.stringify(payload, null, 2));
+    });
+
+    // Export Markdown
+    document.getElementById('btn-export-md').addEventListener('click', () => {
+      const title = `Seznam – poznámky${$respondent.value?` (\nRespondent: ${$respondent.value})`:''}`;
+      const lines = [
+        `# Seznam – otázky a poznámky`,
+        $respondent.value?`**Respondent:** ${$respondent.value}`:null,
+        `**Exportováno:** ${new Date().toLocaleString()}`,
+        '',
+        ...items.map((it,i)=>`**${i+1}. ${it.q}**\n\n${it.a?it.a:'(bez odpovědi)'}\n`)
+      ].filter(Boolean);
+      download('seznam-notes.md', lines.join('\n'));
+    });
+
+    // Tisk / PDF
+    document.getElementById('btn-print').addEventListener('click', () => window.print());
+  </script>
 </body>
 </html>
